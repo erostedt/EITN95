@@ -1,4 +1,5 @@
 import java.util.*;
+import java.io.*;
 import java.lang.Math;
 
 class State extends GlobalSimulation{
@@ -8,15 +9,21 @@ class State extends GlobalSimulation{
 	public int subTask;		// Simulation changes for the different subtasks.
 	public int nbrOfAInQueue = 0, nbrAccumulated = 0, nbrMeasurements = 0, nbrOfBInQueue = 0;	//Variables for measurements.
 	public double SERVICE_TIME_A = 0.002, SERVICE_TIME_B = 0.004, d = 1;	// Variables for simulation.
+	public boolean writeToFile;
+	public File file;
+	public int writeToFileTime = 5;
+	Random rnd = new Random(); // This is just a random number generator
 
-	State(int subTask){
+	State(int subTask, boolean writeToFile){
 		/**
 		 * Assigns subtask.
 		 */
 		this.subTask = subTask;
+		this.writeToFile = writeToFile;
+		if(writeToFile){
+			this.file = new File("subTask" + subTask);
+		}
 	}
-
-	Random rnd = new Random(); // This is just a random number generator
 
 	// The following method is called by the main program each time a new event has been fetched
 	// from the event list in the main loop. 
@@ -118,5 +125,26 @@ class State extends GlobalSimulation{
 		nbrAccumulated += nbrOfAInQueue + nbrOfBInQueue;
 		nbrMeasurements++;
 		insertEvent(MEASURE, time + 0.1);
+		if (writeToFile && writeToFileTime < time){
+			int total = nbrOfAInQueue + nbrOfBInQueue;
+			writer(file, time + "," + nbrOfAInQueue + "," + nbrOfBInQueue + "," + total);
+			writeToFileTime++;
+		}
+	}
+
+	public void writer(File f, String s) {
+		/**
+		 * Writes a string to a file.
+		 * @param f File to write to.
+		 * @param s string to be written on the file.
+		 */
+		try {
+			FileWriter fw = new FileWriter(f, true);
+			fw.write(s);
+			fw.write(System.lineSeparator());
+			fw.close();
+		} catch (IOException ex) {
+			System.err.println("Could not write to file.");
+		}
 	}
 }

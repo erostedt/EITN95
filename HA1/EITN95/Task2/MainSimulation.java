@@ -3,10 +3,11 @@ import java.io.*;
 
 public class MainSimulation extends GlobalSimulation{
  
-    public static void main(String[] args) throws IOException {
+    public static void main(final String[] args) throws IOException {
 		Event actEvent;
-		int subTask = 3;
-    	State actState = new State(subTask); // The state that should be used
+		final int subTask = 3;
+		final boolean writeToFile = true;
+		State actState = new State(subTask, writeToFile); // The state that should be used
     	// Some events must be put in the event list at the beginning
 
         insertEvent(ARRIVAL_A, 0);
