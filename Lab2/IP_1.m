@@ -9,7 +9,7 @@ A = [8000 4000;
       200];
  lb = [0;
        0];
- %options = optimoptions('intlinprog', 'Display', 'iter');
+ 
  options = optimoptions('intlinprog', 'Display', 'off');
  intcon = [1;
            2];
