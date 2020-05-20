@@ -40,7 +40,6 @@ public class MainSimulation extends Global{
 		}
 
     	//Finally the result of the simulation is printed below:
-
     	System.out.println("Mean number of jobs in the queuing system: " + (double)dispatcher.nbrAccumulated/dispatcher.nbrMeasurements);
 		System.out.println("Mean time per job: " + (double)accumulatedTime/nbrAccumulatedJobs);
 
