@@ -13,8 +13,8 @@ public class MainSimulation extends Global {
 		// The signal list is started and actSignal is declared. actSignal is the latest signal that has been fetched from the
 		// signal list in the main loop below.
 		int worldSize = 10000;
-		int[] numSensors = {1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000};
-		double[] throughputs = new double[10];
+		int[] radiusSize = {6000, 7000, 8000, 9000, 10000, 11000};
+		int _n = 2000;
 		Signal actSignal;
 		new SignalList();
 
@@ -22,11 +22,11 @@ public class MainSimulation extends Global {
 		if (create){
 			ArrayList<Integer> newPos;
 			ArrayList< ArrayList<Integer> > positions;
-			for (int n : numSensors) {
-				createFiles(n, 1, 4000, 7000, 5000, 5000);
+			for (int r : radiusSize) {
+				createFiles(_n, 1, 4000, r, 5000, 5000);
 
 				positions = new ArrayList<>();
-				for(int i = 0; i < n; i++){
+				for(int i = 0; i < r; i++){
 					newPos = new ArrayList<>(2);
 					newPos.add(rnd.nextInt(worldSize));
 					newPos.add(rnd.nextInt(worldSize));
@@ -35,27 +35,26 @@ public class MainSimulation extends Global {
 						newPos.set(1, rnd.nextInt(worldSize));
 					} while(positions.contains(newPos));
 					positions.add(newPos);
-					writePosition(n, newPos.get(0), newPos.get(1));
+					writePosition(_n, newPos.get(0), newPos.get(1));
 				}
 			}
 		}
 		else{
 
 			ArrayList< ArrayList<Double> > allPackageLosses = new ArrayList<>();
-			ArrayList<Double[]> confidenceIntervals = new ArrayList<>(10);
+			ArrayList<Double[]> confidenceIntervals = new ArrayList<>(6);
 			
 			for(int i = 0; i < confidenceIntervals.size(); i++){
 				confidenceIntervals.add(new Double[3]);
 			}
 
-			
+			double[] throughputs = new double[6];
 			int maxiter = 3;
 			for(int run = 0; run < maxiter; run++) {
 
 				ArrayList<Double> thisRunPackageLosses = new ArrayList<>();
-
-				for (int numSensorIdx = 0; numSensorIdx < numSensors.length; numSensorIdx++) {
-					int fName = numSensors[numSensorIdx];
+				for (int radiusIdx = 0; radiusIdx < radiusSize.length; radiusIdx++) {
+					int fName = radiusSize[radiusIdx];
 						try {
 							FileReader _reader = new FileReader(String.valueOf(fName));
 							BufferedReader reader = new BufferedReader(_reader);
@@ -87,13 +86,14 @@ public class MainSimulation extends Global {
 								time = actSignal.arrivalTime;
 								actSignal.destination.TreatSignal(actSignal);
 							}
-							throughputs[numSensorIdx] = (double)gateway.nbrSuccesful / time;
+							throughputs[radiusIdx] = (double)gateway.nbrSuccesful / time;
 							double packageLoss = (double) gateway.nbrFailed / (gateway.totalAttempts - gateway.nbrOutOfReach);
 							thisRunPackageLosses.add(packageLoss);
 
 						} catch (IOException e) {
 							java.lang.System.exit(0);
 						}
+				System.out.println(run);
 					time = 0;
 				}
 				allPackageLosses.add(thisRunPackageLosses);

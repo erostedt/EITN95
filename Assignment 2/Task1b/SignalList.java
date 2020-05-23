@@ -12,10 +12,11 @@ public class SignalList{
     	list.next = last;
 	}
 
-	public static void SendSignal(int type, Proc dest, double arrtime){
+	public static void SendSignal(int type, Proc sender, Proc dest, double arrtime){
  	Signal dummy, predummy;
  	Signal newSignal = new Signal();
  	newSignal.signalType = type;
+ 	newSignal.sender = sender;
  	newSignal.destination = dest;
  	newSignal.arrivalTime = arrtime;
  	predummy = list;

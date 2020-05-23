@@ -14,7 +14,6 @@ public class MainSimulation extends Global {
 		// signal list in the main loop below.
 		int worldSize = 10000;
 		int[] numSensors = {1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000};
-		double[] throughputs = new double[10];
 		Signal actSignal;
 		new SignalList();
 
@@ -49,7 +48,7 @@ public class MainSimulation extends Global {
 			}
 
 			
-			int maxiter = 3;
+			int maxiter = 20;
 			for(int run = 0; run < maxiter; run++) {
 
 				ArrayList<Double> thisRunPackageLosses = new ArrayList<>();
@@ -76,7 +75,7 @@ public class MainSimulation extends Global {
 								int sy = Integer.valueOf(reader.readLine().split("=")[1]);
 								sensors[i] = new Sensor(gateway, r, t_s, sx, sy);
 
-								SignalList.SendSignal(ARRIVAL, sensors[i], sensors[i], time + - Math.log(rnd.nextDouble()) * sensors[i].ts);
+								SignalList.SendSignal(ARRIVAL, sensors[i], sensors[i], time - Math.log(rnd.nextDouble()) * sensors[i].ts);
 							}
 							reader.close();
 							_reader.close();
@@ -87,13 +86,14 @@ public class MainSimulation extends Global {
 								time = actSignal.arrivalTime;
 								actSignal.destination.TreatSignal(actSignal);
 							}
-							throughputs[numSensorIdx] = (double)gateway.nbrSuccesful / time;
+
 							double packageLoss = (double) gateway.nbrFailed / (gateway.totalAttempts - gateway.nbrOutOfReach);
 							thisRunPackageLosses.add(packageLoss);
 
 						} catch (IOException e) {
 							java.lang.System.exit(0);
 						}
+				System.out.println(run);
 					time = 0;
 				}
 				allPackageLosses.add(thisRunPackageLosses);

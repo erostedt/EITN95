@@ -1,8 +1,5 @@
 import java.util.*;
 import java.io.*;
-import java.lang.*;
-import java.io.FileReader;
-import java.io.BufferedReader;
 
 //It inherits Proc so that we can use time and the signal names without dot notation
 
@@ -12,128 +9,100 @@ public class MainSimulation extends Global {
 	public static void main(String[] args) throws IOException {
 
 		// When -1, enter if-statement below to give each student a velocity from U(1,7)
-		double[] velocities = {2.0, 4.0, -1.0};
+		double[] vels = {2.0, 4.0, -1.0};
 
-		ArrayList<ArrayList<Double>> allTimes = new ArrayList<>();
-		ArrayList<Double[]> CIs = new ArrayList<>(3);
-		ArrayList<ArrayList<Integer>> levelOfAcquaint = new ArrayList<>();
-		for(int i = 0; i < 3; i++){
-			CIs.add(new Double[3]);
-			levelOfAcquaint.add(new ArrayList<>());
+		ArrayList<ArrayList<Double>> allRunTimes = new ArrayList<>();
+
+		ArrayList<Double[]> confidenceIntervals = new ArrayList<>(3);
+
+		for(int i = 0; i < confidenceIntervals.size(); i++){
+			confidenceIntervals.add(new Double[3]);
 		}
 
-		boolean CIoverlap = true;
-		while (CIoverlap) {
-			ArrayList<Double> times = new ArrayList<>();
-			for (double vel : velocities) {
-
+		int maxiter = 100;
+		for (int run = 0; run < maxiter; run++) {
+			ArrayList<Double> runTimes = new ArrayList<>();
+			for (double vel : vels) {
 				Signal actSignal;
 				new SignalList();
-				friends = new boolean[20][20];
-				// Generate the floor
-				Floor floor = new Floor(20);
-				// Create all students
+				pairs = new boolean[20][20];
+				Hall hall = new Hall();
 
 				List<Student> students = new ArrayList<>();
 
-				for (int i = 0; i < 20; i++) {
-					// Generate students at unique positions
-					List<Integer> pos = generatePosition();
-					Student s;
+				for (int id = 0; id < numStudents; id++) {
+
+					Student student;
+					int rndX = rnd.nextInt(hall.size);
+					int rndY = rnd.nextInt(hall.size);
 					if (vel == -1) {
 						// vel ~ U(1,7)
-						s = new Student(floor, i, 1 + slump.nextDouble()*6, pos);
+						student = new Student(hall, id, rndX, rndY, 1 + 6*rnd.nextDouble());
 					}
 					else{
-						s = new Student(floor, i, vel, pos);
+						student = new Student(hall, id, rndX, rndY, vel);
 					}
-					students.add(s);
-					SignalList.SendSignal(CHECK_FOR_FRIEND, s, time + 0.01*slump.nextDouble());
+					students.add(student);
+					hall.tiles[rndX][rndY].students.add(student);
+					SignalList.SendSignal(MOVE, student, time);
 
-					// Add student to the floor
-					floor.tiles[pos.get(0)][pos.get(1)].studentsOnTile += 1;
-					floor.tiles[pos.get(0)][pos.get(1)].students.add(s);
 				}
 
-				// This is the main loop
-				while (met != 190) {
+				while (numPairs != 380) {
 					actSignal = SignalList.FetchSignal();
 					time = actSignal.arrivalTime;
 					actSignal.destination.TreatSignal(actSignal);
 
 				}
-				times.add(time);
-				met = 0;
+				// reset
+				runTimes.add(time);
+				numPairs = 0;
 				time = 0;
-
-
-				ArrayList<Integer> acquaintTimes;
-				if (vel == 2.0){
-					acquaintTimes = levelOfAcquaint.get(0);
+				
+				
+				for(Student student: students){
+					for(Student other: students){
+						writer(String.valueOf(vel), String.valueOf(student.timeWithEach[other.id]), false);
+					}
 				}
-				else if (vel == 4.0){
-					acquaintTimes = levelOfAcquaint.get(1);
-				}
-				else{
-					acquaintTimes = levelOfAcquaint.get(2);
-				}
-				for (Student s : students){
-					acquaintTimes.addAll(s.timeSpent);
-				}
+				writer(String.valueOf(vel), "", true);
 			}
 
-			allTimes.add(times);
-			if (allTimes.size() > 3) {
-				for (int i = 0; i < 3; i++) {
-					CIs.set(i, CI.calc95CI(allTimes, i));
+			allRunTimes.add(runTimes);
+			if (allRunTimes.size() > 1) {
+				for (int i = 0; i < confidenceIntervals.size(); i++) {
+					confidenceIntervals.set(i, confidenceInterval.getConfidenceInterval(allRunTimes, i));
 				}
-				CIoverlap = CI.overlappingCI(CIs);
+				if(!confidenceInterval.anyOverlap(confidenceIntervals)){
+					break;
+				}
 			}
 		}
-		for (Double[] CI : CIs) {
-			System.out.println("Mean time: " + CI[1]);
-			System.out.println(CI[0] + ", " + CI[2]);
+		for (Double[] confidenceInterval : confidenceIntervals) {
+			System.out.println("Mean time: " + confidenceInterval[1]);
+			System.out.println(confidenceInterval[0] + ", " + confidenceInterval[2]);
 		}
+	}
 
-		for (double vel : velocities){
-			if (vel == 2.0){
-				createLogFile("2.0", levelOfAcquaint.get(0));
-			}
-			else if (vel == 4.0){
-				createLogFile("4.0", levelOfAcquaint.get(1));
+	public static void writer(String path, String s, boolean lineBreak) {
+		/**
+		 * Writes a string to a file.
+		 * @param f File to write to.
+		 * @param s string to be written on the file.
+		 */
+		try {
+			FileWriter fw = new FileWriter(path, true);
+			if(lineBreak){
+				fw.write(System.lineSeparator());
 			}
 			else{
-				createLogFile("U(1,7)", levelOfAcquaint.get(2));
+				fw.write(s);
+				fw.write(" ");
 			}
+			fw.close();
+		} catch (IOException ex) {
+			System.err.println("Could not write to file.");
 		}
-
-	}
-
-
-	private static List<Integer> generatePosition(){
-		List<Integer> pos = new ArrayList<>();
-		do {
-			pos.add(slump.nextInt(20));
-			pos.add(slump.nextInt(20));
-		} while(allPos.contains(pos));
-		allPos.add(pos);
-		return pos;
-	}
-
-	private static void createLogFile(String vel, List<Integer> values) throws IOException{
-		String path = "log:vel:" + vel;
-		for (Integer v : values){
-			writeToFile(Integer.toString(v), path);
-		}
-	}
-
-	private static void writeToFile(String line, String path) throws IOException{
-		FileWriter write = new FileWriter(path, true);
-		PrintWriter print_line = new PrintWriter(write);
-
-		print_line.printf( "%s" + "%n" , line);
-		print_line.close();
-		write.close();
 	}
 }
 

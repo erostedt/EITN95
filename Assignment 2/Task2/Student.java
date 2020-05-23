@@ -1,49 +1,47 @@
-import java.lang.*;
-import java.util.*;
-import java.io.*;
-
 //It inherits Proc so that we can use time and the signal names without dot notation
 
 class Student extends Proc {
-	Floor floor;
-	int index;
-	List<Integer> pos;
-	int steps;
-	int maxSteps;
+	Hall hall;
+	int id, x, y, steps, maxSteps;
 	int[] dir;
 	double vel;
-	List<Integer> timeSpent = new ArrayList<>(Collections.nCopies(20, 0));
+	int[] timeWithEach;
+	
 
 
-	public Student(Floor floor, int index, double vel, List<Integer> pos){
-		this.floor = floor;
-		this.index = index;
+	public Student(Hall hall, int id, int x, int y, double vel){
+		this.hall = hall;
+		this.id = id;
+		this.x = x;
+		this.y = y;
+		this.dir = getDir(x, y);
 		this.vel = vel;
-		this.pos = pos;
-		this.steps = 0;
-		this.maxSteps = slump.nextInt(10) + 1;
-		this.dir = getDirection(this);
+
+		timeWithEach = new int[numStudents];
+		for (int i = 0; i < numStudents; i++){
+			timeWithEach[0] = 0;
+		}
 	}
 
 	// What to do when a signal arrives
 	public void TreatSignal(Signal x) {
-		if (x.signalType == CHECK_FOR_FRIEND) {
-			Tile currentTile = this.floor.tiles[this.pos.get(0)][this.pos.get(1)];
+		if (x.signalType == FIND_OTHER_STUDENT) {
+			Tile currentTile = this.hall.tiles[this.x][this.y];
 
 			if (currentTile.students.size() >= 2 ){
 				// There are more than one student on the tile
 				if (this.equals(currentTile.students.get(0))){
 					// First person in list
-					Student friend = currentTile.students.get(1);
+					Student other = currentTile.students.get(1);
 					// Update how long the two people has been talking
-					this.timeSpent.set(friend.index, this.timeSpent.get(friend.index) + 60);
-					friend.timeSpent.set(this.index, friend.timeSpent.get(this.index) + 60);
+					this.timeWithEach[other.id] += 60;
+					other.timeWithEach[this.id] += 60;
 
 					// Update who knows who
-					if (!friends[this.index][friend.index]){
-						met++;
-						friends[this.index][friend.index] = true;
-						friends[friend.index][this.index] = true;
+					if (!pairs[this.id][other.id]){
+						numPairs = numPairs + 2;
+						pairs[this.id][other.id] = true;
+						pairs[other.id][this.id] = true;
 					}
 				}
 				else if (this.equals(currentTile.students.get(1))){
@@ -53,56 +51,51 @@ class Student extends Proc {
 				}
 				else {
 					// Not number one or two in the list, keep moving
-					double t = move(this);
-					SignalList.SendSignal(CHECK_FOR_FRIEND, this, time + t);
-					//SignalList.SendSignal(MOVE, this, time);
+					SignalList.SendSignal(MOVE, this, time);
 				}
 			}
 			else {
 				// Only one on the tile, keep moving
-				double t = move(this);
-				SignalList.SendSignal(CHECK_FOR_FRIEND, this, time + t);
+				SignalList.SendSignal(MOVE, this, time);
 			}
 		}
 		else if (x.signalType == MOVE){
-			double t = move(this);
-			SignalList.SendSignal(CHECK_FOR_FRIEND, this, time + t);
+			double timeToMove = move(this);
+			SignalList.SendSignal(FIND_OTHER_STUDENT, this, time + timeToMove);
 		}
 	}
 
 
-	private double move(Student s){
-		if(outOfBounds(s.pos.get(0) + s.dir[0], s.pos.get(1) + s.dir[1]) || s.steps >= s.maxSteps) {
+	private double move(Student student){
+		if(outside(student.x + student.dir[0], student.y + student.dir[1]) || student.maxSteps <= student.steps) {
 			// If we move outside, get a new direction, new maximum steps and reset the step counter
-			s.dir = getDirection(s);
-			s.steps = 0;
-			s.maxSteps = slump.nextInt(10) + 1;
+			student.dir = getDir(student.x, student.y);
+			student.steps = 0;
+			student.maxSteps = rnd.nextInt(10) + 1;
 		}
-		List<Integer> newPos = new ArrayList<>(Arrays.asList(s.pos.get(0) + s.dir[0], s.pos.get(1) + s.dir[1]));
-		s.floor.updateFloor(s, newPos);
-		s.pos = newPos;
-		s.steps++;
+		int[] newPos = {student.x + student.dir[0], student.y + student.dir[1]};
+		double dist = Math.sqrt(Math.pow(student.dir[0], 2) + Math.pow(student.dir[1], 2));
+		student.hall.moveStudent(student, newPos);
+		student.x = newPos[0];
+		student.y = newPos[1];
+		student.steps++;
 
 		// Returns the time it takes to move to the square depending on diagonal or straight move
-		if (Math.abs(s.dir[0]) == Math.abs(s.dir[1])){
-			return Math.sqrt(2)/s.vel;
-		} else {
-			return 1.0/s.vel;
-		}
+		return dist / student.vel;
 	}
 
 
-	private boolean outOfBounds(int x, int y){
-		return x > 19 || x < 0 || y > 19 || y < 0;
+	private boolean outside(int x, int y){
+		return x > hall.size - 1 || x < 0 || y > hall.size - 1 || y < 0;
 	}
 
 
-	private int[] getDirection(Student s){
-		int[] d = new int[2];
+	private int[] getDir(int x, int y){
+		int[] dir = new int[2];
 		do{
-			d[0] = slump.nextInt(3) - 1;
-			d[1] = slump.nextInt(3) - 1;
-		} while ((d[0] == 0 && d[1] == 0) || (outOfBounds(s.pos.get(0) + d[0], s.pos.get(1) + d[1])));
-		return d;
+			dir[0] = rnd.nextInt(3) - 1;
+			dir[1] = rnd.nextInt(3) - 1;
+		} while ((dir[0] == 0 && dir[1] == 0) || (outside(x + dir[0], y + dir[1])));
+		return dir;
 	}
 }
