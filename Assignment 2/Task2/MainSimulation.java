@@ -7,15 +7,14 @@ import java.io.*;
 public class MainSimulation extends Global {
 
 	public static void main(String[] args) throws IOException {
-
-		// When -1, enter if-statement below to give each student a velocity from U(1,7)
-		double[] vels = {2.0, 4.0, -1.0};
+		// We denote -1 for the case that we shall randomize the velocity
+		double[] vels = {2.0, 4.0, -1};
 
 		ArrayList<ArrayList<Double>> allRunTimes = new ArrayList<>();
 
 		ArrayList<Double[]> confidenceIntervals = new ArrayList<>(3);
 
-		for(int i = 0; i < confidenceIntervals.size(); i++){
+		for(int i = 0; i < 3; i++){
 			confidenceIntervals.add(new Double[3]);
 		}
 
@@ -36,7 +35,7 @@ public class MainSimulation extends Global {
 					int rndX = rnd.nextInt(hall.size);
 					int rndY = rnd.nextInt(hall.size);
 					if (vel == -1) {
-						// vel ~ U(1,7)
+						// We pick random speeds 
 						student = new Student(hall, id, rndX, rndY, 1 + 6*rnd.nextDouble());
 					}
 					else{
@@ -54,12 +53,12 @@ public class MainSimulation extends Global {
 					actSignal.destination.TreatSignal(actSignal);
 
 				}
-				// reset
+				// reset simulation
 				runTimes.add(time);
 				numPairs = 0;
 				time = 0;
 				
-				
+				// Write to file
 				for(Student student: students){
 					for(Student other: students){
 						writer(String.valueOf(vel), String.valueOf(student.timeWithEach[other.id]), false);
@@ -67,10 +66,10 @@ public class MainSimulation extends Global {
 				}
 				writer(String.valueOf(vel), "", true);
 			}
-
+			// Calc confidence intervals.
 			allRunTimes.add(runTimes);
 			if (allRunTimes.size() > 1) {
-				for (int i = 0; i < confidenceIntervals.size(); i++) {
+				for (int i = 0; i < 3; i++) {
 					confidenceIntervals.set(i, confidenceInterval.getConfidenceInterval(allRunTimes, i));
 				}
 				if(!confidenceInterval.anyOverlap(confidenceIntervals)){
@@ -78,6 +77,7 @@ public class MainSimulation extends Global {
 				}
 			}
 		}
+		// Print out confidence intervals
 		for (Double[] confidenceInterval : confidenceIntervals) {
 			System.out.println("Mean time: " + confidenceInterval[1]);
 			System.out.println(confidenceInterval[0] + ", " + confidenceInterval[2]);

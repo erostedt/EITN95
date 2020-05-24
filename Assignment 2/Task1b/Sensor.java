@@ -15,17 +15,21 @@ class Sensor extends Proc {
 		this.isReachable = isReachable(g);
 	}
 
-	// What to do when a signal arrives
 	public void TreatSignal(Signal x) {
+		// If sensor can reach the gateway, send an arrival
 		if (isReachable) {
 			SignalList.SendSignal(ARRIVAL, this, this.gateway, time);
-		} else {
+		} 
+		// If sensor cannot reach the gateway, send a out of reach signal.
+		else {
 			SignalList.SendSignal(OUT_OF_REACH, this, this.gateway, time);
 		}
+		// Schedule new arrival to this sensor.
 		SignalList.SendSignal(ARRIVAL, this,this, time - Math.log(rnd.nextDouble()) * ts);
 	}
 
 	private boolean isReachable(Gateway g){
+		// checks if this sensor can reach the gateway.
 		return Math.pow(this.x - g.x, 2) +  Math.pow(this.y - g.y, 2) <= Math.pow(this.r, 2);
 	}
 

@@ -3,21 +3,17 @@ import java.io.*;
 import java.io.FileReader;
 import java.io.BufferedReader;
 
-//It inherits Proc so that we can use time and the signal names without dot notation
-
-
 public class MainSimulation extends Global {
 
 	public static void main(String[] args) throws IOException {
 
-		// The signal list is started and actSignal is declared. actSignal is the latest signal that has been fetched from the
-		// signal list in the main loop below.
 		int worldSize = 10000;
 		int[] numSensors = {1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000};
 		double throughput = 0;
 		Signal actSignal;
 		new SignalList();
 
+		// Set to true to create new config files
 		boolean create = false;
 		if (create){
 			ArrayList<Integer> newPos;
@@ -40,8 +36,10 @@ public class MainSimulation extends Global {
 			}
 		}
 		else{
+			// Choose number of sensors
 			int fName = numSensors[9];
 			try {
+				// read file
 				FileReader _reader = new FileReader(String.valueOf(fName));
 				BufferedReader reader = new BufferedReader(_reader);
 
@@ -72,6 +70,7 @@ public class MainSimulation extends Global {
 					time = actSignal.arrivalTime;
 					actSignal.destination.TreatSignal(actSignal);
 				}
+				// Print throughput
 				throughput = (double)gateway.nbrSuccesful / time;
 				System.out.println("Throughput when n = " + fName + ":   " + throughput);
 			} catch (IOException e) {
@@ -82,6 +81,7 @@ public class MainSimulation extends Global {
 	}
 
 	public static void createFiles(int numSensors, double Tp, double ts, double radius, int gatewayX, int gatewayY){
+		// Creates file
 		String[] s = new String[6];
 		s[0] = Integer.toString(numSensors);
 		s[1] = Double.toString(Tp);
@@ -122,6 +122,7 @@ public class MainSimulation extends Global {
 	}
 
 	public static void writePosition(int n, int x, int y){
+		// Writes position to file
 		writer(String.valueOf(n), String.format("x=%d", x));
 		writer(String.valueOf(n), String.format("y=%d", y));
 	}

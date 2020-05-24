@@ -1,0 +1,31 @@
+(lb, ub) = (0, 1)
+Confidence Interval for n = 1000
+Mean: 0.390247
+[0.376421, 0.404073]
+Confidence Interval for n = 2000
+Mean: 0.622585
+[0.613765, 0.631405]
+Confidence Interval for n = 3000
+Mean: 0.774648
+[0.764974, 0.784321]
+Confidence Interval for n = 4000
+Mean: 0.862706
+[0.859894, 0.865519]
+Confidence Interval for n = 5000
+Mean: 0.917131
+[0.915086, 0.919176]
+Confidence Interval for n = 6000
+Mean: 0.949340
+[0.948655, 0.950026]
+Confidence Interval for n = 7000
+Mean: 0.969741
+[0.968630, 0.970853]
+Confidence Interval for n = 8000
+Mean: 0.981643
+[0.981284, 0.982002]
+Confidence Interval for n = 9000
+Mean: 0.988562
+[0.987621, 0.989504]
+Confidence Interval for n = 10000
+Mean: 0.993037
+[0.992711, 0.993364]

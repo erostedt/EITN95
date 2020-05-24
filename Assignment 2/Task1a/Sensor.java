@@ -1,5 +1,3 @@
-//It inherits Proc so that we can use time and the signal names without dot notation
-
 class Sensor extends Proc {
 	Gateway gateway;
 	int x, y;
@@ -15,16 +13,20 @@ class Sensor extends Proc {
 		this.isReachable = isReachable(g);
 	}
 
-	// What to do when a signal arrives
 	public void TreatSignal(Signal x) {
+		// If can reach the gateway send an arrival
 		if (isReachable) {
 			SignalList.SendSignal(ARRIVAL, this, this.gateway, time);
-		} else {
+		}
+		// If cannot reach the gateway, send out of range 
+		else {
 			SignalList.SendSignal(OUT_OF_REACH, this, this.gateway, time);
 		}
+		// Schedule new Arrival
 		SignalList.SendSignal(ARRIVAL, this,this, time - Math.log(rnd.nextDouble()) * ts);
 	}
 
+	// Check if sensor can reach gateway.
 	private boolean isReachable(Gateway g){
 		return Math.pow(this.x - g.x, 2) +  Math.pow(this.y - g.y, 2) <= Math.pow(this.r, 2);
 	}

@@ -4,6 +4,7 @@ class Gateway extends Proc{
 	double Tp;
 	boolean occupied;
 
+	//Measurements
 	int nbrArrivals = 0, nbrFinished = 0, nbrFailed = 0, nbrSuccesful = 0, nbrOutOfReach = 0, totalAttempts = 0;
 
 	public Gateway(int x, int y, double Tp){
@@ -12,10 +13,9 @@ class Gateway extends Proc{
 		this.Tp = Tp;
 		occupied = false;
 	}
-	// What to do when a signal arrives
 	public void TreatSignal(Signal x){
 		switch (x.signalType){
-
+			// If arriving signal, send to failed if gateway is occupied, else schedule transmition.
 			case ARRIVAL: {
 				nbrArrivals++;
 				totalAttempts++;
@@ -27,7 +27,7 @@ class Gateway extends Proc{
 					occupied = true;
 				}
 			} break;
-
+			// Transmit is succesful if no other signal arrived during the transmition time.
 			case TRANSMIT: {
 				nbrFinished++;
 				if(nbrArrivals != nbrFinished){
@@ -39,7 +39,7 @@ class Gateway extends Proc{
 				}
 				
 			} break;
-
+			// If transmission faild we update measurements.
 			case FAILED: {
 				nbrFinished++;
 				nbrFailed++;
@@ -47,8 +47,8 @@ class Gateway extends Proc{
 					occupied = false;
 				}
 			} break;
-
-
+			// If the signal could not reach the gateway, update measurements.
+			// This does not make to much sense to be in the gateway, but its simplest.
 			case OUT_OF_REACH: {
 				nbrOutOfReach++;
 				totalAttempts++;

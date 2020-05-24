@@ -44,12 +44,12 @@ public class MainSimulation extends Global {
 			ArrayList< ArrayList<Double> > allPackageLosses = new ArrayList<>();
 			ArrayList<Double[]> confidenceIntervals = new ArrayList<>(10);
 			
-			for(int i = 0; i < confidenceIntervals.size(); i++){
+			for(int i = 0; i < 10; i++){
 				confidenceIntervals.add(new Double[3]);
 			}
 
 			
-			int maxiter = 3;
+			int maxiter = 20;
 			for(int run = 0; run < maxiter; run++) {
 
 				ArrayList<Double> thisRunPackageLosses = new ArrayList<>();
@@ -96,9 +96,10 @@ public class MainSimulation extends Global {
 						}
 					time = 0;
 				}
+				System.out.println(run);
 				allPackageLosses.add(thisRunPackageLosses);
 				if (run > 1){
-					for (int i = 0; i < confidenceIntervals.size(); i++) {
+					for (int i = 0; i < 10; i++) {
 						confidenceIntervals.set(i, confidenceInterval.getConfidenceInterval(allPackageLosses, i));
 					}
 					if (confidenceInterval.anyOverlap(confidenceIntervals)){
@@ -106,8 +107,9 @@ public class MainSimulation extends Global {
 					}
 				}
 			}
-			for (int i = 0; i < confidenceIntervals.size(); i++) {
-				writeConfInts(confidenceIntervals.get(i), i);
+			for (int i = 0; i < 10; i++) {
+				writeConfInts(confidenceIntervals.get(i), numSensors[i]);
+				writeThroughput(throughputs[i], numSensors[i]);
 			}
 		}
 	}
@@ -162,5 +164,10 @@ public class MainSimulation extends Global {
 		writer(path, String.format("Confidence Interval for n = %d", n));
 		writer(path, String.format("Mean: %f", confInt[1]));
 		writer("Confidence Intervals", String.format("[%f, %f]", confInt[0], confInt[2]));
+	}
+
+	public static void writeThroughput(double throughput, int n){
+		String path = "Throughputs";
+		writer(path, String.format("n = %d: %f", n, throughput));
 	}
 }

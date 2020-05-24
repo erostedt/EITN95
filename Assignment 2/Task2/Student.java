@@ -1,5 +1,3 @@
-//It inherits Proc so that we can use time and the signal names without dot notation
-
 class Student extends Proc {
 	Hall hall;
 	int id, x, y, steps, maxSteps;
@@ -23,52 +21,59 @@ class Student extends Proc {
 		}
 	}
 
-	// What to do when a signal arrives
 	public void TreatSignal(Signal x) {
+		/**
+		 * Treats the signal
+		 */
+
 		if (x.signalType == FIND_OTHER_STUDENT) {
 			Tile currentTile = this.hall.tiles[this.x][this.y];
 
+			// We shall only investigate further if there are at least two people on tile
 			if (currentTile.students.size() >= 2 ){
-				// There are more than one student on the tile
+
+				// If this person is the first to the tile.
 				if (this.equals(currentTile.students.get(0))){
-					// First person in list
+
 					Student other = currentTile.students.get(1);
-					// Update how long the two people has been talking
+					// Update the first person and the second persons times and update that they have met
 					this.timeWithEach[other.id] += 60;
 					other.timeWithEach[this.id] += 60;
 
-					// Update who knows who
 					if (!pairs[this.id][other.id]){
 						numPairs = numPairs + 2;
 						pairs[this.id][other.id] = true;
 						pairs[other.id][this.id] = true;
 					}
 				}
+				// If this person is the second to the tile we schedule that this student and the student which this student talks to
+				// to move.
 				else if (this.equals(currentTile.students.get(1))){
-					// Second person in the list
+
 					SignalList.SendSignal(MOVE, this, time + 60);
 					SignalList.SendSignal(MOVE, currentTile.students.get(0), time + 60);
 				}
 				else {
-					// Not number one or two in the list, keep moving
+					// If this student was not one of the two first, then this student moves.
 					SignalList.SendSignal(MOVE, this, time);
 				}
 			}
 			else {
-				// Only one on the tile, keep moving
+				// If this students is alone on the tile, s/he should move.
 				SignalList.SendSignal(MOVE, this, time);
 			}
 		}
 		else if (x.signalType == MOVE){
+			// Moves and look for other student when arriving.
 			double timeToMove = move(this);
 			SignalList.SendSignal(FIND_OTHER_STUDENT, this, time + timeToMove);
 		}
 	}
 
-
 	private double move(Student student){
+		// Move the student and returns the time it takes to walk.
 		if(outside(student.x + student.dir[0], student.y + student.dir[1]) || student.maxSteps <= student.steps) {
-			// If we move outside, get a new direction, new maximum steps and reset the step counter
+			// If outside or student have reached maxSteps, get new dir, set steps in that dir to zero and get new maxSteps
 			student.dir = getDir(student.x, student.y);
 			student.steps = 0;
 			student.maxSteps = rnd.nextInt(10) + 1;
@@ -80,17 +85,18 @@ class Student extends Proc {
 		student.y = newPos[1];
 		student.steps++;
 
-		// Returns the time it takes to move to the square depending on diagonal or straight move
 		return dist / student.vel;
 	}
 
 
 	private boolean outside(int x, int y){
+		// Checks if outside the board
 		return x > hall.size - 1 || x < 0 || y > hall.size - 1 || y < 0;
 	}
 
 
 	private int[] getDir(int x, int y){
+		// Get new dir, cannot be (0, 0) since then we get stuck.
 		int[] dir = new int[2];
 		do{
 			dir[0] = rnd.nextInt(3) - 1;

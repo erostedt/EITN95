@@ -3,20 +3,16 @@ import java.io.*;
 import java.io.FileReader;
 import java.io.BufferedReader;
 
-//It inherits Proc so that we can use time and the signal names without dot notation
-
-
 public class MainSimulation extends Global {
 
 	public static void main(String[] args) throws IOException {
 
-		// The signal list is started and actSignal is declared. actSignal is the latest signal that has been fetched from the
-		// signal list in the main loop below.
 		int worldSize = 10000;
 		int[] numSensors = {1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000};
 		Signal actSignal;
 		new SignalList();
 
+		// Set true if you want to create new config files
 		boolean create = false;
 		if (create){
 			ArrayList<Integer> newPos;
@@ -43,19 +39,21 @@ public class MainSimulation extends Global {
 			ArrayList< ArrayList<Double> > allPackageLosses = new ArrayList<>();
 			ArrayList<Double[]> confidenceIntervals = new ArrayList<>(10);
 			
-			for(int i = 0; i < confidenceIntervals.size(); i++){
+			for(int i = 0; i < 10; i++){
 				confidenceIntervals.add(new Double[3]);
 			}
 
-			
+			// Simulations are slow so we set a max iteration.
 			int maxiter = 20;
 			for(int run = 0; run < maxiter; run++) {
 
 				ArrayList<Double> thisRunPackageLosses = new ArrayList<>();
 
+				// Loop over different number of sensors
 				for (int numSensorIdx = 0; numSensorIdx < numSensors.length; numSensorIdx++) {
 					int fName = numSensors[numSensorIdx];
 						try {
+							// read from file
 							FileReader _reader = new FileReader(String.valueOf(fName));
 							BufferedReader reader = new BufferedReader(_reader);
 
@@ -94,11 +92,14 @@ public class MainSimulation extends Global {
 							java.lang.System.exit(0);
 						}
 				System.out.println(run);
+				// reset time
 					time = 0;
 				}
 				allPackageLosses.add(thisRunPackageLosses);
+				// get confidence intervals
+				// Confidence interval does not really make sense with to few data points.
 				if (run > 1){
-					for (int i = 0; i < confidenceIntervals.size(); i++) {
+					for (int i = 0; i < 10; i++) {
 						confidenceIntervals.set(i, confidenceInterval.getConfidenceInterval(allPackageLosses, i));
 					}
 					if (confidenceInterval.anyOverlap(confidenceIntervals)){
@@ -106,6 +107,7 @@ public class MainSimulation extends Global {
 					}
 				}
 			}
+			// Write confidence intervals to file
 			for (int i = 0; i < confidenceIntervals.size(); i++) {
 				writeConfInts(confidenceIntervals.get(i), i);
 			}
@@ -113,6 +115,7 @@ public class MainSimulation extends Global {
 	}
 
 	public static void createFiles(int numSensors, double Tp, double ts, double radius, int gatewayX, int gatewayY){
+		// Used to create config files.
 		String[] s = new String[6];
 		s[0] = Integer.toString(numSensors);
 		s[1] = Double.toString(Tp);
@@ -153,11 +156,13 @@ public class MainSimulation extends Global {
 	}
 
 	public static void writePosition(int n, int x, int y){
+		// Writes sensor position to file
 		writer(String.valueOf(n), String.format("x=%d", x));
 		writer(String.valueOf(n), String.format("y=%d", y));
 	}
 
 	public static void writeConfInts(Double[] confInt, int n){
+		// Writes confidence interval to file
 		String path = "Confidence Intervals";
 		writer(path, String.format("Confidence Interval for n = %d", n));
 		writer(path, String.format("Mean: %f", confInt[1]));

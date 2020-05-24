@@ -3,7 +3,7 @@ class Gateway extends Proc{
 	int x, y;
 	double Tp;
 	boolean occupied;
-
+	
 	int nbrArrivals = 0, nbrFinished = 0, nbrFailed = 0, nbrSuccesful = 0, nbrOutOfReach = 0, totalAttempts = 0;
 
 	public Gateway(int x, int y, double Tp){
@@ -12,10 +12,10 @@ class Gateway extends Proc{
 		this.Tp = Tp;
 		occupied = false;
 	}
-	// What to do when a signal arrives
+	
 	public void TreatSignal(Signal x){
 		switch (x.signalType){
-
+			// Arrival to gateway. Send to failed if gateway is occupied, else try to transmit.
 			case ARRIVAL: {
 				nbrArrivals++;
 				totalAttempts++;
@@ -27,7 +27,7 @@ class Gateway extends Proc{
 					occupied = true;
 				}
 			} break;
-
+			// See if transmission was succesful.
 			case TRANSMIT: {
 				nbrFinished++;
 				if(nbrArrivals != nbrFinished){
@@ -39,7 +39,7 @@ class Gateway extends Proc{
 				}
 				
 			} break;
-
+			// We get here if transmission failed.
 			case FAILED: {
 				nbrFinished++;
 				nbrFailed++;
@@ -48,7 +48,7 @@ class Gateway extends Proc{
 				}
 			} break;
 
-
+			// Update measurements if sensor was out of reach.
 			case OUT_OF_REACH: {
 				nbrOutOfReach++;
 				totalAttempts++;

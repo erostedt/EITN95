@@ -13,6 +13,7 @@ class Hall {
     }
 
     public void moveStudent(Student student, int[] newPos) {
+        // Moves student, i.e updates state of the hall.
         this.tiles[student.x][student.y].students.remove(student);
         this.tiles[newPos[0]][newPos[1]].students.add(student);
     }
